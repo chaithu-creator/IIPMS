@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -21,6 +22,23 @@ const io = new Server(httpServer, {
 
 app.use(cors());
 app.use(express.json());
+
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+const readLimiter = rateLimit({
+  windowMs: 60_000,       // 1 minute
+  max: 120,               // 120 reads per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please slow down.' },
+});
+
+const writeLimiter = rateLimit({
+  windowMs: 60_000,       // 1 minute
+  max: 60,                // 60 writes per minute per IP (one every second)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please slow down.' },
+});
 
 // ── Database setup ────────────────────────────────────────────────────────────
 const db = new Database(path.join(__dirname, 'db', 'iipms.sqlite'));
@@ -70,7 +88,7 @@ function calcCognitiveStress({ lightLux = 0, soundDb = 0, vibration = 0 }) {
 // ── REST API ──────────────────────────────────────────────────────────────────
 
 // POST /api/readings  – store a new sensor reading
-app.post('/api/readings', (req, res) => {
+app.post('/api/readings', writeLimiter, (req, res) => {
   const { lat, lng, lightLux, soundDb, vibration } = req.body;
 
   if (lightLux === undefined || soundDb === undefined || vibration === undefined) {
@@ -95,14 +113,14 @@ app.post('/api/readings', (req, res) => {
 });
 
 // GET /api/readings?limit=200  – latest readings
-app.get('/api/readings', (req, res) => {
+app.get('/api/readings', readLimiter, (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 200, 500);
   const rows  = db.prepare('SELECT * FROM readings ORDER BY ts DESC LIMIT ?').all(limit);
   res.json(rows.reverse());
 });
 
 // GET /api/readings/heatmap  – lat/lng + pollution_index for heatmap
-app.get('/api/readings/heatmap', (req, res) => {
+app.get('/api/readings/heatmap', readLimiter, (req, res) => {
   const rows = db.prepare(
     `SELECT lat, lng, pollution_index AS intensity
      FROM readings
@@ -113,7 +131,7 @@ app.get('/api/readings/heatmap', (req, res) => {
 });
 
 // GET /api/stats  – aggregate statistics
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', readLimiter, (req, res) => {
   const row = db.prepare(`
     SELECT
       COUNT(*)                         AS total,
@@ -129,7 +147,7 @@ app.get('/api/stats', (req, res) => {
 });
 
 // GET /api/readings/trend?hours=24  – hourly aggregates for trend graph
-app.get('/api/readings/trend', (req, res) => {
+app.get('/api/readings/trend', readLimiter, (req, res) => {
   const hours  = Math.min(Number(req.query.hours) || 24, 168);
   const since  = Date.now() - hours * 3_600_000;
 
@@ -152,7 +170,7 @@ app.get('/api/readings/trend', (req, res) => {
 });
 
 // GET /api/recommendations  – based on recent averages
-app.get('/api/recommendations', (req, res) => {
+app.get('/api/recommendations', readLimiter, (req, res) => {
   const recent = db.prepare(
     `SELECT AVG(light_lux) AS l, AVG(sound_db) AS s, AVG(vibration) AS v, AVG(pollution_index) AS pi
      FROM (SELECT * FROM readings ORDER BY ts DESC LIMIT 20)`
@@ -191,7 +209,7 @@ const FRONTEND_DIST = path.join(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(FRONTEND_DIST));
 
 // SPA fallback – serve index.html for non-API routes
-app.get(/^(?!\/api).*/, (req, res) => {
+app.get(/^(?!\/api).*/, readLimiter, (req, res) => {
   res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
 });
 
