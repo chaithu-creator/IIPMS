@@ -158,14 +158,14 @@ app.post('/api/auth/login', writeLimiter, async (req, res) => {
 });
 
 // GET /api/auth/me
-app.get('/api/auth/me', requireAuth, (req, res) => {
+app.get('/api/auth/me', readLimiter, requireAuth, (req, res) => {
   const user = db.prepare('SELECT id, name, email, location, alerts_email, created_at FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(user);
 });
 
 // PUT /api/auth/profile  – update name / location / alerts preference
-app.put('/api/auth/profile', requireAuth, writeLimiter, (req, res) => {
+app.put('/api/auth/profile', writeLimiter, requireAuth, (req, res) => {
   const { name, location, alerts_email } = req.body;
   const updates = [];
   const params = [];
