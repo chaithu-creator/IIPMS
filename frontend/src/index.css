@@ -1,0 +1,74 @@
+/* ── Global Styles ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-base:    #0f172a;
+  --bg-card:    #1e293b;
+  --bg-card2:   #162032;
+  --border:     #334155;
+  --text-base:  #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent:     #38bdf8;
+  --green:      #22c55e;
+  --yellow:     #facc15;
+  --orange:     #fb923c;
+  --red:        #ef4444;
+  --purple:     #a78bfa;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-base);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Utility */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-good    { background: #166534; color: #86efac; }
+.badge-moderate{ background: #713f12; color: #fde68a; }
+.badge-poor    { background: #7c2d12; color: #fca5a5; }
+.badge-hazardous{ background: #581c87; color: #e9d5ff; }
+
+/* Gauge */
+.gauge-ring { transform-origin: center; transition: stroke-dashoffset 0.8s ease; }
+
+/* Leaflet map override */
+.leaflet-container { background: #0f172a !important; border-radius: 12px; }
+
+/* Pulse animation for live indicator */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.pulse { animation: pulse 1.5s infinite; }
+
+/* Fade in */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.fade-in { animation: fadeIn 0.4s ease forwards; }
