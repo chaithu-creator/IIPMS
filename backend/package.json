@@ -1,0 +1,19 @@
+{
+  "name": "iipms-backend",
+  "version": "1.0.0",
+  "description": "IIPMS Backend API",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "socket.io": "^4.7.5"
+  }
+}
