@@ -1,4 +1,4 @@
-# IIPMS – Invisible Pollution Monitoring System
+# IIPMS – Intelligent Invisible Pollution Mapping System
 
 A full-stack, real-time environmental monitoring Progressive Web App (PWA) that detects, analyzes, and visualizes **invisible pollution** — light pollution, vibration pollution, and mental noise pollution — using your smartphone's built-in sensors.
 
